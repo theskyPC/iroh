@@ -493,16 +493,17 @@ impl Client {
 
         trace!("spawning QAD probes");
 
-        // TODO: randomize choice?
-        const MAX_RELAYS: usize = 5;
-
         let mut v4_buf = JoinSet::new();
         let cancel_v4 = shutdown_token.child_token();
         let mut v6_buf = JoinSet::new();
         let cancel_v6 = shutdown_token.child_token();
 
+        // Probe every relay: the loop below stops at the first `enough_relays`
+        // reports, which come from the closest relays. Capping the probes at the
+        // first relays by URL order hid every later relay from QAD and from
+        // home relay selection.
         let relays = self.relay_map.relays::<Vec<_>>();
-        for relay in relays.into_iter().take(MAX_RELAYS) {
+        for relay in relays {
             if if_state.have_v4 && needs_v4_probe {
                 trace!(?relay.url, "v4 QAD probe starting");
                 let relay = relay.clone();
