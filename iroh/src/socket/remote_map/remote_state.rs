@@ -50,6 +50,10 @@ mod remote_info;
 /// attempted more frequently than at this interval.
 const HOLEPUNCH_ATTEMPTS_INTERVAL: Duration = Duration::from_secs(5);
 
+/// How soon an abandoned custom transport path is reopened.  Nothing like
+/// holepunching brings such a path back, so the client reopens it itself.
+const CUSTOM_PATH_REOPEN_DELAY: Duration = Duration::from_secs(1);
+
 /// The latency at or under which we don't try to upgrade to a better path.
 const GOOD_ENOUGH_LATENCY: Duration = Duration::from_millis(10);
 
@@ -625,6 +629,20 @@ impl RemoteStateActor {
                     %network_path,
                     ?reason
                 );
+
+                if conn.side().is_client()
+                    && matches!(network_path.remote(), transports::Addr::Custom(_))
+                {
+                    let retry_at = Instant::now() + CUSTOM_PATH_REOPEN_DELAY;
+                    self.state
+                        .pending_open_paths
+                        .push_back(transports::FourTuple::from_remote(network_path.remote()));
+                    self.state.scheduled_open_path = Some(
+                        self.state
+                            .scheduled_open_path
+                            .map_or(retry_at, |at| at.min(retry_at)),
+                    );
+                }
 
                 // If the remote closed our selected path, select a new one.
                 self.select_path();
