@@ -426,19 +426,22 @@ impl RemoteStateActor {
                 .register_and_configure_path(conn_id, conn_state, &path);
 
             if let Some(path_remote) = path_remote
-                && !path_remote.is_relay()
                 && conn.side().is_client()
             {
-                // We may have raced this with a relay address.  Try and add any
-                // relay addresses we have back.
-                let relays = self
+                // We may have raced this with a relay or custom transport
+                // address.  Try and add those we have back, so they stay
+                // available as backup paths.
+                let backups = self
                     .state
                     .paths
                     .addrs()
-                    .filter(|addr| addr.is_relay())
+                    .filter(|addr| {
+                        (addr.is_relay() && !path_remote.is_relay())
+                            || matches!(addr, transports::Addr::Custom(_))
+                    })
                     .map(|addr| transports::FourTuple::from_remote(addr.clone()))
                     .collect::<Vec<_>>();
-                for open_addr in relays {
+                for open_addr in backups {
                     self.state
                         .open_path_on_conn(conn_id, conn_state, &conn, &open_addr);
                 }
