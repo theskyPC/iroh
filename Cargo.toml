@@ -58,3 +58,10 @@ trait_method_marked_deprecated = { required-update = "minor" }
 type_associated_const_marked_deprecated = { required-update = "minor" }
 type_marked_deprecated = { required-update = "minor" }
 type_method_marked_deprecated = { required-update = "minor" }
+
+# noq 1.4.0 with QUIC receive timestamps (SKYPC.md in the fork), which
+# max_receive_timestamps_per_ack exposes.
+[patch.crates-io]
+noq = { git = "ssh://git@github.com/theskyPC/noq.git", rev = "313caae25e30c637666944a56928dc64ae3b8c2f" }
+noq-proto = { git = "ssh://git@github.com/theskyPC/noq.git", rev = "313caae25e30c637666944a56928dc64ae3b8c2f" }
+noq-udp = { git = "ssh://git@github.com/theskyPC/noq.git", rev = "313caae25e30c637666944a56928dc64ae3b8c2f" }

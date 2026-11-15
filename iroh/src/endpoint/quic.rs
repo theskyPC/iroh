@@ -349,6 +349,17 @@ impl QuicTransportConfigBuilder {
         self
     }
 
+    /// Reports when packets arrive, and takes such reports from the peer.
+    ///
+    /// With `Some(max)`, the endpoint supports the QUIC Receive Timestamps extension and takes up
+    /// to `max` timestamps in each acknowledgement; when the peer supports it too, the congestion
+    /// controller learns when the peer received each packet. Defaults to `None`, which disables
+    /// it.
+    pub fn max_receive_timestamps_per_ack(mut self, max: Option<u32>) -> Self {
+        self.0.max_receive_timestamps_per_ack(max);
+        self
+    }
+
     /// Number of consecutive PTOs after which network is considered to be experiencing persistent congestion.
     pub fn persistent_congestion_threshold(mut self, value: u32) -> Self {
         self.0.persistent_congestion_threshold(value);
